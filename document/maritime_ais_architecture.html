@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>maritime_ais_architecture</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown-light.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        .markdown-body {
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 45px;
+        }
+        @media (max-width: 767px) {
+            .markdown-body {
+                padding: 15px;
+            }
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        @media print {
+            .markdown-body {
+                max-width: none;
+                padding: 0;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="text-align: right; padding: 10px;">
+        <button onclick="window.print()" style="padding: 8px 16px; cursor: pointer; background: #0366d6; color: white; border: none; border-radius: 4px;">Save as PDF / Print</button>
+    </div>
+    <div id="content" class="markdown-body"></div>
+    <script>
+        const markdown = "## 1. 架构设计\n\n```mermaid\ngraph TD\n    A[用户浏览器] --> B[React前端应用]\n    A --> C[微信小程序]\n    B --> D[Supabase客户端]\n    C --> D\n    D --> E[Supabase服务]\n    B --> F[地图服务API]\n    B --> G[气象数据API]\n    B --> H[AI预测服务]\n    \n    subgraph \"前端层\"\n        B\n        C\n    end\n    \n    subgraph \"服务层\"\n        E\n        F\n        G\n        H\n    end\n    \n    subgraph \"外部服务\"\n        I[AIS数据源]\n        J[地图服务商]\n        K[气象服务商]\n    end\n```\n\n## 2. 技术描述\n\n- **前端**: React@18 + TypeScript + TailwindCSS@3 + Vite\n- **初始化工具**: vite-init\n- **后端**: Supabase (BaaS)\n- **地图引擎**: Leaflet + React-Leaflet (2D) / Three.js (3D场景)\n- **状态管理**: React Context + Zustand\n- **UI组件库**: Ant Design + 自定义组件\n- **小程序**: 微信小程序原生开发\n- **AI服务**: Python FastAPI (预测算法)\n\n## 3. 路由定义\n\n| 路由 | 用途 |\n|-------|---------|\n| / | 首页，全球船舶实时分布图 |\n| /search | 船舶搜索页面 |\n| /vessel/:id | 船舶详情页面 |\n| /analysis | 分析工具页面 |\n| /prediction | 预测推演页面 |\n| /report | 数据报告页面 |\n| /user/profile | 用户个人中心 |\n| /user/favorites | 我的关注 |\n| /user/markers | 我的标记 |\n| /auth/login | 登录页面 |\n| /auth/register | 注册页面 |\n| /auth/reset | 密码重置页面 |\n\n## 4. API定义\n\n### 4.1 船舶数据API\n\n**获取船舶实时位置**\n```\nGET /api/vessels/realtime\n```\n\n请求参数:\n| 参数名 | 类型 | 必需 | 描述 |\n|--------|------|------|------|\n| bounds | string | 否 | 地图边界坐标 (sw_lng,sw_lat,ne_lng,ne_lat) |\n| zoom | number | 否 | 地图缩放级别 |\n| vessel_types | array | 否 | 船舶类型筛选 |\n| time_range | string | 否 | 时间范围筛选 |\n\n响应:\n```json\n{\n  \"vessels\": [\n    {\n      \"id\": \"vessel_123\",\n      \"name\": \"COSCO SHIPPING\",\n      \"mmsi\": \"123456789\",\n      \"imo\": \"9876543\",\n      \"position\": {\n        \"latitude\": 31.2304,\n        \"longitude\": 121.4737\n      },\n      \"course\": 123.5,\n      \"speed\": 15.2,\n      \"heading\": 125,\n      \"status\": \"underway\",\n      \"last_update\": \"2024-01-15T10:30:00Z\",\n      \"destination\": \"Shanghai\",\n      \"eta\": \"2024-01-16T08:00:00Z\"\n    }\n  ],\n  \"total\": 1250,\n  \"timestamp\": \"2024-01-15T10:35:00Z\"\n}\n```\n\n**获取船舶历史轨迹**\n```\nGET /api/vessels/:id/trajectory\n```\n\n请求参数:\n| 参数名 | 类型 | 必需 | 描述 |\n|--------|------|------|------|\n| start_time | string | 是 | 开始时间 (ISO 8601) |\n| end_time | string | 是 | 结束时间 (ISO 8601) |\n| interval | number | 否 | 采样间隔 (分钟) |\n\n### 4.2 分析工具API\n\n**交通流分析**\n```\nPOST /api/analysis/traffic-flow\n```\n\n请求:\n```json\n{\n  \"area\": {\n    \"type\": \"polygon\",\n    \"coordinates\": [[...]]\n  },\n  \"time_range\": {\n    \"start\": \"2024-01-01T00:00:00Z\",\n    \"end\": \"2024-01-31T23:59:59Z\"\n  },\n  \"analysis_type\": \"density\",\n  \"grid_size\": 0.1\n}\n```\n\n响应:\n```json\n{\n  \"analysis_id\": \"analysis_456\",\n  \"status\": \"completed\",\n  \"result\": {\n    \"density_map\": \"url_to_density_tile_layer\",\n    \"statistics\": {\n      \"total_vessels\": 1250,\n      \"average_density\": 15.3,\n      \"peak_hours\": [\"08:00\", \"18:00\"]\n    }\n  },\n  \"generated_at\": \"2024-01-15T10:35:00Z\"\n}\n```\n\n**距离测量**\n```\nPOST /api/analysis/distance\n```\n\n请求:\n```json\n{\n  \"points\": [\n    {\"lat\": 31.2304, \"lng\": 121.4737},\n    {\"lat\": 32.0603, \"lng\": 118.7969}\n  ],\n  \"measure_type\": \"sea_route\"\n}\n```\n\n### 4.3 预测API\n\n**交通流预测**\n```\nPOST /api/prediction/traffic-flow\n```\n\n请求:\n```json\n{\n  \"historical_years\": 3,\n  \"prediction_years\": 2,\n  \"region\": {\n    \"type\": \"rectangle\",\n    \"bounds\": [120.0, 30.0, 125.0, 35.0]\n  },\n  \"model_parameters\": {\n    \"seasonality\": true,\n    \"trend\": true,\n    \"external_factors\": [\"economic\", \"weather\"]\n  }\n}\n```\n\n## 5. 数据模型\n\n### 5.1 数据库实体关系\n\n```mermaid\nerDiagram\n    USERS ||--o{ FAVORITE_VESSELS : marks\n    USERS ||--o{ CUSTOM_MARKERS : creates\n    USERS ||--o{ ANALYSIS_REPORTS : generates\n    VESSELS ||--o{ TRAJECTORY_POINTS : has\n    VESSELS ||--o{ VESSEL_EVENTS : records\n    ANALYSIS_REPORTS ||--o{ REPORT_LAYERS : contains\n\n    USERS {\n        uuid id PK\n        string email UK\n        string password_hash\n        string name\n        string role\n        json profile_data\n        timestamp created_at\n        timestamp updated_at\n    }\n    \n    VESSELS {\n        uuid id PK\n        string mmsi UK\n        string imo\n        string name\n        string call_sign\n        string vessel_type\n        int length\n        int width\n        string flag_country\n        json static_info\n        timestamp created_at\n        timestamp updated_at\n    }\n    \n    TRAJECTORY_POINTS {\n        uuid id PK\n        uuid vessel_id FK\n        decimal latitude\n        decimal longitude\n        decimal course\n        decimal speed\n        decimal heading\n        string status\n        timestamp timestamp\n        json metadata\n    }\n    \n    FAVORITE_VESSELS {\n        uuid id PK\n        uuid user_id FK\n        uuid vessel_id FK\n        string group_name\n        timestamp created_at\n    }\n    \n    CUSTOM_MARKERS {\n        uuid id PK\n        uuid user_id FK\n        string name\n        decimal latitude\n        decimal longitude\n        string marker_type\n        json properties\n        timestamp created_at\n    }\n    \n    ANALYSIS_REPORTS {\n        uuid id PK\n        uuid user_id FK\n        string report_type\n        json parameters\n        json results\n        string status\n        timestamp generated_at\n        timestamp expires_at\n    }\n    \n    VESSEL_EVENTS {\n        uuid id PK\n        uuid vessel_id FK\n        string event_type\n        json event_data\n        timestamp occurred_at\n        string source\n    }\n```\n\n### 5.2 数据定义语言\n\n**用户表 (users)**\n```sql\n-- 创建用户表\nCREATE TABLE users (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    email VARCHAR(255) UNIQUE NOT NULL,\n    password_hash VARCHAR(255) NOT NULL,\n    name VARCHAR(100) NOT NULL,\n    role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('user', 'professional', 'enterprise', 'admin')),\n    profile_data JSONB DEFAULT '{}',\n    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),\n    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()\n);\n\n-- 创建索引\nCREATE INDEX idx_users_email ON users(email);\nCREATE INDEX idx_users_role ON users(role);\n```\n\n**船舶表 (vessels)**\n```sql\n-- 创建船舶表\nCREATE TABLE vessels (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    mmsi VARCHAR(9) UNIQUE NOT NULL,\n    imo VARCHAR(7),\n    name VARCHAR(255) NOT NULL,\n    call_sign VARCHAR(10),\n    vessel_type VARCHAR(50),\n    length INTEGER,\n    width INTEGER,\n    flag_country VARCHAR(3),\n    static_info JSONB DEFAULT '{}',\n    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),\n    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()\n);\n\n-- 创建索引\nCREATE INDEX idx_vessels_mmsi ON vessels(mmsi);\nCREATE INDEX idx_vessels_name ON vessels(name);\nCREATE INDEX idx_vessels_type ON vessels(vessel_type);\n```\n\n**轨迹点表 (trajectory_points)**\n```sql\n-- 创建轨迹点表\nCREATE TABLE trajectory_points (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    vessel_id UUID NOT NULL REFERENCES vessels(id),\n    latitude DECIMAL(10,7) NOT NULL,\n    longitude DECIMAL(10,7) NOT NULL,\n    course DECIMAL(5,1),\n    speed DECIMAL(5,1),\n    heading DECIMAL(5,1),\n    status VARCHAR(20),\n    timestamp TIMESTAMP WITH TIME ZONE NOT NULL,\n    metadata JSONB DEFAULT '{}',\n    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()\n);\n\n-- 创建索引\nCREATE INDEX idx_trajectory_vessel_time ON trajectory_points(vessel_id, timestamp DESC);\nCREATE INDEX idx_trajectory_location ON trajectory_points USING GIST (\n    ST_MakePoint(longitude, latitude)\n);\nCREATE INDEX idx_trajectory_timestamp ON trajectory_points(timestamp DESC);\n```\n\n**分析报告表 (analysis_reports)**\n```sql\n-- 创建分析报告表\nCREATE TABLE analysis_reports (\n    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n    user_id UUID NOT NULL REFERENCES users(id),\n    report_type VARCHAR(50) NOT NULL,\n    parameters JSONB NOT NULL,\n    results JSONB,\n    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),\n    generated_at TIMESTAMP WITH TIME ZONE,\n    expires_at TIMESTAMP WITH TIME ZONE,\n    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()\n);\n\n-- 创建索引\nCREATE INDEX idx_reports_user ON analysis_reports(user_id);\nCREATE INDEX idx_reports_type ON analysis_reports(report_type);\nCREATE INDEX idx_reports_status ON analysis_reports(status);\nCREATE INDEX idx_reports_created ON analysis_reports(created_at DESC);\n```\n\n### 5.3 Supabase权限配置\n\n```sql\n-- 授予匿名用户基础读取权限\nGRANT SELECT ON vessels TO anon;\nGRANT SELECT ON trajectory_points TO anon;\n\n-- 授予认证用户完整权限\nGRANT ALL PRIVILEGES ON users TO authenticated;\nGRANT ALL PRIVILEGES ON vessels TO authenticated;\nGRANT ALL PRIVILEGES ON trajectory_points TO authenticated;\nGRANT ALL PRIVILEGES ON favorite_vessels TO authenticated;\nGRANT ALL PRIVILEGES ON custom_markers TO authenticated;\nGRANT ALL PRIVILEGES ON analysis_reports TO authenticated;\n\n-- 创建行级安全策略\nALTER TABLE users ENABLE ROW LEVEL SECURITY;\nALTER TABLE favorite_vessels ENABLE ROW LEVEL SECURITY;\nALTER TABLE custom_markers ENABLE ROW LEVEL SECURITY;\nALTER TABLE analysis_reports ENABLE ROW LEVEL SECURITY;\n\n-- 用户只能查看和修改自己的数据\nCREATE POLICY users_own_data ON users FOR ALL USING (auth.uid() = id);\nCREATE POLICY favorites_own_data ON favorite_vessels FOR ALL USING (auth.uid() = user_id);\nCREATE POLICY markers_own_data ON custom_markers FOR ALL USING (auth.uid() = user_id);\nCREATE POLICY reports_own_data ON analysis_reports FOR ALL USING (auth.uid() = user_id);\n```\n\n## 6. AI预测服务架构\n\n### 6.1 预测服务设计\n```mermaid\ngraph TD\n    A[前端请求] --> B[API网关]\n    B --> C[预测服务]\n    C --> D[数据预处理]\n    D --> E[模型推理]\n    E --> F[结果后处理]\n    F --> G[响应返回]\n    \n    C --> H[历史数据]\n    H --> I[时序数据库]\n    \n    E --> J[机器学习模型]\n    J --> K[模型仓库]\n    \n    subgraph \"预测服务层\"\n        C\n        D\n        E\n        F\n    end\n    \n    subgraph \"数据层\"\n        H\n        I\n    end\n    \n    subgraph \"模型层\"\n        J\n        K\n    end\n```\n\n### 6.2 核心算法模块\n- **时序分析**: LSTM、Prophet用于交通流趋势预测\n- **空间分析**: 基于密度的聚类算法(DBSCAN)识别热点区域\n- **机器学习**: Random Forest、XGBoost用于特征重要性分析\n- **深度学习**: GNN图神经网络用于航线预测\n\n### 6.3 模型部署\n- **容器化**: Docker容器部署预测服务\n- **模型版本**: MLflow进行模型版本管理\n- **A/B测试**: 支持多模型并行测试\n- **监控告警**: 模型性能实时监控";
+        
+        // Custom renderer for mermaid code blocks
+        const renderer = new marked.Renderer();
+        const originalCode = renderer.code;
+        
+        renderer.code = function(code, language) {
+            if (language === 'mermaid') {
+                return '<div class="mermaid">' + code + '</div>';
+            }
+            return originalCode.call(this, code, language);
+        };
+        
+        marked.setOptions({ renderer: renderer });
+        
+        document.getElementById('content').innerHTML = marked.parse(markdown);
+        
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>
+  

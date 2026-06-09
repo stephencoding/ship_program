@@ -1,6 +1,7 @@
 import React from 'react';
-import { 
-  Ruler, 
+import { useNavigate } from 'react-router-dom';
+import {
+  Ruler,
   Square, 
   CloudRain, 
   BarChart2, 
@@ -37,7 +38,17 @@ const ToolItem: React.FC<ToolItemProps> = ({ icon, label, active, onClick }) => 
 );
 
 const ToolsPanel: React.FC = () => {
-  const { currentTool, setCurrentTool, toggleSidebar } = useAppStore();
+  const navigate = useNavigate();
+  const { currentTool, selectedVessel, setCurrentTool, toggleSidebar } = useAppStore();
+
+  const handleTrajectoryPlayback = () => {
+    if (!selectedVessel) {
+      window.alert('请先在地图上选择一条船舶');
+      return;
+    }
+
+    navigate(`/vessel/${selectedVessel.id}`);
+  };
 
   return (
     <div className="absolute top-4 right-4 z-[1000] flex flex-col space-y-2">
@@ -99,10 +110,10 @@ const ToolsPanel: React.FC = () => {
           active={currentTool === 'traffic'}
           onClick={() => setCurrentTool('traffic')} 
         />
-        <ToolItem 
-          icon={<PlayCircle className="w-5 h-5" />} 
-          label="轨迹回放" 
-          onClick={() => {}} 
+        <ToolItem
+          icon={<PlayCircle className="w-5 h-5" />}
+          label="轨迹回放"
+          onClick={handleTrajectoryPlayback}
         />
       </div>
     </div>
